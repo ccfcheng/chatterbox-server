@@ -11,8 +11,27 @@ this file and include it in basic-server.js so that it actually works.
 *Hint* Check out the node module documentation at http://nodejs.org/api/modules.html.
 
 **************************************************************/
+var url = require('url');
+var messages = {};
+messages.results = [];
 
 exports.requestHandler = function(request, response) {
+  var urlString = url.parse(request.url).pathname;
+  if ( urlString === '/messages') {
+    exports.requestHandleMessages(request, response);
+  }
+
+  var statusCode = 200;
+
+  var headers = defaultCorsHeaders;
+
+  headers['Content-Type'] = "application/json";
+
+  response.writeHead(statusCode, headers);
+  response.end("Use the right URL");
+};
+
+exports.requestHandleMessages = function(request, response) {
   // Request and Response come from node's http module.
   //
   // They include information about both the incoming request, such as
@@ -28,7 +47,22 @@ exports.requestHandler = function(request, response) {
   // debugging help, but you should always be careful about leaving stray
   // console.logs in your code.
   console.log("Serving request type " + request.method + " for url " + request.url);
+  if (request.method === 'POST') {
+    request.on('data', function(data) {
+      // '' + data inside this call returns a nicely formatted message object
+      var parsedObj = JSON.parse(''+ data);
+      parsedObj["createdAt"] = new Date();
+      parsedObj["objectId"] = Math.floor(Math.random() * 1000);
+      // console.log(parsedObj);
+      // each message is stored in messages with the ObjectId as the key, and message itself as value
+      messages.results.unshift(parsedObj);
+      //console.log(messages);
+    });
+  }
 
+  // if (request.method === 'GET') {
+
+  // }
   // The outgoing status.
   var statusCode = 200;
 
@@ -39,7 +73,7 @@ exports.requestHandler = function(request, response) {
   //
   // You will need to change this if you are sending something
   // other than plain text, like JSON or HTML.
-  headers['Content-Type'] = "text/plain";
+  headers['Content-Type'] = "application/json";
 
   // .writeHead() writes to the request line and headers of the response,
   // which includes the status and all headers.
@@ -52,7 +86,7 @@ exports.requestHandler = function(request, response) {
   //
   // Calling .end "flushes" the response's internal buffer, forcing
   // node to actually send all the data over to the client.
-  response.end("Hello, World!");
+  response.end(JSON.stringify(messages));
 };
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).

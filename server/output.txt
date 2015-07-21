@@ -1,0 +1,5 @@
+20 Jul 19:20:39 - [33m[nodemon] v1.3.7[39m
+20 Jul 19:20:39 - [33m[nodemon] to restart at any time, enter `rs`[39m
+20 Jul 19:20:39 - [33m[nodemon] watching: *.*[39m
+20 Jul 19:20:39 - [32m[nodemon] starting `node basic-server.js`[39m
+Listening on http://127.0.0.1:3000
