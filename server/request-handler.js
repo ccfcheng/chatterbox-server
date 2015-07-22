@@ -15,79 +15,99 @@ var url = require('url');
 var messages = {};
 messages.results = [];
 
-exports.requestHandler = function(request, response) {
-  var urlString = url.parse(request.url).pathname;
-  if ( urlString === '/messages') {
-    exports.requestHandleMessages(request, response);
-  }
-
-  var statusCode = 200;
-
+exports.responseHandler = function(data, response, statusCode){
+  // Set StatusCode
+  var statusCode = statusCode || 200;
+  // Create Headers
   var headers = defaultCorsHeaders;
-
   headers['Content-Type'] = "application/json";
-
   response.writeHead(statusCode, headers);
-  response.end("Use the right URL");
+  // End response
+  response.end(JSON.stringify(data));
 };
 
-exports.requestHandleMessages = function(request, response) {
-  // Request and Response come from node's http module.
-  //
-  // They include information about both the incoming request, such as
-  // headers and URL, and about the outgoing response, such as its status
-  // and content.
-  //
-  // Documentation for both request and response can be found in the HTTP section at
-  // http://nodejs.org/documentation/api/
-
-  // Do some basic logging.
-  //
-  // Adding more logging to your server can be an easy way to get passive
-  // debugging help, but you should always be careful about leaving stray
-  // console.logs in your code.
-  console.log("Serving request type " + request.method + " for url " + request.url);
-  if (request.method === 'POST') {
-    request.on('data', function(data) {
-      // '' + data inside this call returns a nicely formatted message object
-      var parsedObj = JSON.parse(''+ data);
-      parsedObj["createdAt"] = new Date();
-      parsedObj["objectId"] = Math.floor(Math.random() * 1000);
-      // console.log(parsedObj);
-      // each message is stored in messages with the ObjectId as the key, and message itself as value
-      messages.results.unshift(parsedObj);
-      //console.log(messages);
-    });
-  }
-
-  // if (request.method === 'GET') {
-
-  // }
-  // The outgoing status.
-  var statusCode = 200;
-
-  // See the note below about CORS headers.
-  var headers = defaultCorsHeaders;
-
-  // Tell the client we are sending them plain text.
-  //
-  // You will need to change this if you are sending something
-  // other than plain text, like JSON or HTML.
-  headers['Content-Type'] = "application/json";
-
-  // .writeHead() writes to the request line and headers of the response,
-  // which includes the status and all headers.
-  response.writeHead(statusCode, headers);
-
-  // Make sure to always call response.end() - Node may not send
-  // anything back to the client until you do. The string you pass to
-  // response.end() will be the body of the response - i.e. what shows
-  // up in the browser.
-  //
-  // Calling .end "flushes" the response's internal buffer, forcing
-  // node to actually send all the data over to the client.
-  response.end(JSON.stringify(messages));
+exports.optionsHandler = function (req, res){
+  exports.responseHandler({data: 'success'}, res, 200);
 };
+
+
+exports.postHandler = function(req, res) {
+  req.on('data', function(data) {
+    var parsedObj = JSON.parse(''+ data);
+    parsedObj["createdAt"] = new Date();
+    parsedObj["objectId"] = Math.floor(Math.random() * 1000);
+    // each message is put in front of the messages.results array
+    messages.results.unshift(parsedObj);
+  });
+  exports.responseHandler({data: 'success'}, res, 201);
+  // req.on('end', function(res){
+  // });
+};
+
+exports.getHandler = function(req, res) {
+  exports.responseHandler(messages, res, 200);
+};
+
+// exports.requestHandler = function(request, response) {
+//   var urlString = url.parse(request.url).pathname.substring(0, 9);
+//   if ( urlString === '/classes/') {
+//     if (request.method === 'POST') {
+//       console.log("POST before req.on");
+//       request.on('data', function(data) {
+//         console.log("POST req.on data");
+//         var parsedObj = JSON.parse(''+ data);
+//         parsedObj["createdAt"] = new Date();
+//         parsedObj["objectId"] = Math.floor(Math.random() * 1000);
+//         // each message is put in front of the messages.results array
+//         messages.results.unshift(parsedObj);
+
+//         // Response after resource is created
+//       });
+//       request.on('end', function(){
+//         console.log("POST End reached");
+//         exports.responseHandler({ data : "success"}, response, 201);
+//       });
+//     }
+
+//     if (request.method === 'GET') {
+//       // exports.handleGetMessages(request, response);
+//       exports.responseHandler(messages, response, 200);
+//     }
+//   } else {
+//     exports.responseHandler({data: "Page Not Found"}, response, 404);
+//   }
+//   // Run on every request
+//   // var statusCode = 200;
+//   // var headers = defaultCorsHeaders;
+//   // headers['Content-Type'] = "plain/text";
+//   // response.writeHead(statusCode, headers);
+//   // response.end("FALL-Through Triggered");
+// };
+
+// exports.handlePostMessages = function(request, response) {
+//   request.on('data', function(data) {
+//     var parsedObj = JSON.parse(''+ data);
+//     parsedObj["createdAt"] = new Date();
+//     parsedObj["objectId"] = Math.floor(Math.random() * 1000);
+//     // each message is put in front of the messages.results array
+//     messages.results.unshift(parsedObj);
+
+//     // Response after resource is created
+//     var statusCode = 201;
+//     var headers = defaultCorsHeaders;
+//     headers['Content-Type'] = "application/json";
+//     response.writeHead(statusCode, headers);
+//     response.end();
+//   });
+// };
+
+// exports.handleGetMessages = function(request, response) {
+//   var statusCode = 200;
+//   var headers = defaultCorsHeaders;
+//   headers['Content-Type'] = "application/json";
+//   response.writeHead(statusCode, headers);
+//   response.end(JSON.stringify(messages));
+// }
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).
 // This code allows this server to talk to websites that

@@ -5,7 +5,7 @@ $(function() {
   app = {
 //TODO: The current 'addFriend' function just adds the class 'friend'
 //to all messages sent by the user
-    server: 'http://127.0.0.1:3000/messages',
+    server: 'http://127.0.0.1:3000/classes/messages',
     username: 'anonymous',
     roomname: 'lobby',
     lastMessageId: 0,
@@ -47,11 +47,13 @@ $(function() {
         contentType: 'application/json',
         success: function (data) {
           console.log('chatterbox: Message sent');
+          console.log(data);
           // Trigger a fetch to update the messages, pass true to animate
           app.fetch();
         },
         error: function (data) {
           console.error('chatterbox: Failed to send message');
+          console.log(data);
         }
       });
     },
@@ -63,7 +65,6 @@ $(function() {
         data: { order: 'createdAt'},
         success: function(data) {
           console.log('chatterbox: Messages Received');
-          console.log(data);
           // Don't bother if we have nothing to work with
           if (!data.results || !data.results.length) { return; }
 
